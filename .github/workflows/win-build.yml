@@ -28,6 +28,6 @@ jobs:
       - name: build
         run: cmake --build build --config Debug
       - name: test
-        run: cd build && ctest --output-on-failure
+        run: cd build && ctest --output-on-failure -C Debug
       - name: run examples
         run: ./run_examples.sh "192.168.56.101" 1
