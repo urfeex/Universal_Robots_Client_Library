@@ -1,0 +1,34 @@
+name: Windows build and tests
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+      - win-build
+
+jobs:
+  build:
+    timeout-minutes: 30
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: start ursim
+        run: |
+          scripts/start_ursim.sh -m $ROBOT_MODEL -v $URSIM_VERSION -p $PROGRAM_FOLDER -d
+        env:
+          DOCKER_RUN_OPTS: --network ursim_net
+          URSIM_VERSION: 'latest'
+          ROBOT_MODEL: 'ur5e'
+          PROGRAM_FOLDER: 'tests/resources/dockerursim/programs/e-series'
+      - name: configure
+        run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1 -DINTEGRATION_TESTS=1 -DWITH_ASAN=ON
+        env:
+          CXXFLAGS: -g -O2  -fprofile-arcs -ftest-coverage
+          CFLAGS: -g -O2 -fprofile-arcs -ftest-coverage
+          LDFLAGS: -fprofile-arcs -ftest-coverage
+      - name: build
+        run: cmake --build build --config Debug
+      - name: Create folder for test artifacts
+        run: mkdir -p test_artifacts
