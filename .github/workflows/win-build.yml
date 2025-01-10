@@ -27,3 +27,7 @@ jobs:
         run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1 -DINTEGRATION_TESTS=1
       - name: build
         run: cmake --build build --config Debug
+      - name: test
+        run: cd build && ctest --output-on-failure
+      - name: run examples
+        run: ./run_examples.sh "192.168.56.101" 1
