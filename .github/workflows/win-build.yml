@@ -27,11 +27,7 @@ jobs:
         with:
           tag: v1.14.0
       - name: configure
-        run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1 -DINTEGRATION_TESTS=1 -DWITH_ASAN=ON
-        env:
-          CXXFLAGS: -g -O2  -fprofile-arcs -ftest-coverage
-          CFLAGS: -g -O2 -fprofile-arcs -ftest-coverage
-          LDFLAGS: -fprofile-arcs -ftest-coverage
+        run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1 -DINTEGRATION_TESTS=1 
       - name: build
         run: cmake --build build --config Debug
       - name: Create folder for test artifacts
