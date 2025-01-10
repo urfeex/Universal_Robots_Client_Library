@@ -23,8 +23,7 @@ jobs:
           #ROBOT_MODEL: 'ur5e'
           #PROGRAM_FOLDER: 'tests/resources/dockerursim/programs/e-series'
       - name: configure
-        #run: mkdir build && cd build && cmake ..
-        run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1
-        #run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1 -DINTEGRATION_TESTS=1
+        #run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1
+        run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1 -DINTEGRATION_TESTS=1
       - name: build
         run: cmake --build build --config Debug
