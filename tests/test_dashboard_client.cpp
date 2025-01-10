@@ -34,7 +34,6 @@
 #include <thread>
 #include "ur_client_library/comm/tcp_socket.h"
 #include "ur_client_library/ur/version_information.h"
-#define private public
 #include <ur_client_library/ur/dashboard_client.h>
 
 using namespace urcl;
