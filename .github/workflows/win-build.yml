@@ -14,14 +14,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: start ursim
-        run: |
-          scripts/start_ursim.sh -m $ROBOT_MODEL -v $URSIM_VERSION -p $PROGRAM_FOLDER -d
-        env:
-          DOCKER_RUN_OPTS: --network ursim_net
-          URSIM_VERSION: 'latest'
-          ROBOT_MODEL: 'ur5e'
-          PROGRAM_FOLDER: 'tests/resources/dockerursim/programs/e-series'
+      #- name: start ursim
+        #run: |
+          #scripts/start_ursim.sh -m $ROBOT_MODEL -v $URSIM_VERSION -p $PROGRAM_FOLDER -d
+        #env:
+          #DOCKER_RUN_OPTS: --network ursim_net
+          #URSIM_VERSION: 'latest'
+          #ROBOT_MODEL: 'ur5e'
+          #PROGRAM_FOLDER: 'tests/resources/dockerursim/programs/e-series'
+      - uses: Bacondish2023/setup-googletest@v1
+        with:
+          tag: v1.14.0
       - name: configure
         run: mkdir build && cd build && cmake .. -DBUILDING_TESTS=1 -DINTEGRATION_TESTS=1 -DWITH_ASAN=ON
         env:
