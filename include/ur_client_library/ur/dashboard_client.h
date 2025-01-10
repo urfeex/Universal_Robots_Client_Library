@@ -445,7 +445,6 @@ public:
    */
   void assertVersion(const std::string& e_series_min_ver, const std::string& cb3_min_ver,
                      const std::string& required_call);
-  VersionInformation polyscope_version_;
 
   /*!
    * \brief Gets the configured receive timeout. If receive timeout is unconfigured "normal" socket timeout of 1 second
@@ -454,6 +453,9 @@ public:
    * \returns configured receive timeout
    */
   timeval getConfiguredReceiveTimeout() const;
+
+protected:
+  VersionInformation polyscope_version_;
 
 private:
   bool send(const std::string& text);
