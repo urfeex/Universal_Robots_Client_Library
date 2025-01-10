@@ -16,7 +16,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: start ursim
         run: |
-          docker run alpine
+          docker network create --subnet=192.168.56.0/24 ursim_net
+          docker run --rm -d --net ursim_net --ip 192.168.56.101
         env:
           DOCKER_RUN_OPTS: --network ursim_net
           URSIM_VERSION: 'latest'
