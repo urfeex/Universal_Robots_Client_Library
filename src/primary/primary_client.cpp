@@ -1,26 +1,28 @@
 #include <ur_client_library/primary/primary_client.h>
 #include <ur_client_library/primary/robot_message.h>
 #include <ur_client_library/primary/robot_state.h>
+#include "ur_client_library/primary/package_header.h"
 
 namespace urcl
 {
 namespace primary_interface
 {
-PrimaryClient::PrimaryClient(comm::URStream<PrimaryPackage>& stream)
-  : stream_(stream)
+PrimaryClient::PrimaryClient(const std::string& robot_ip, comm::INotifier& notifier)
+  : stream_(robot_ip, UR_PRIMARY_PORT)
 {
   prod_.reset(new comm::URProducer<PrimaryPackage>(stream_, parser_));
 
   consumer_.reset(new PrimaryConsumer());
   consumer_->setErrorCodeMessageCallback(std::bind(&PrimaryClient::errorMessageCallback, this, std::placeholders::_1));
-  
+
   // Configure multi consumer even though we only have one consumer as default, as this enables the user to add more
   // consumers after the object has been created
   std::vector<std::shared_ptr<comm::IConsumer<PrimaryPackage>>> consumers;
   consumers.push_back(consumer_);
   multi_consumer_.reset(new comm::MultiConsumer<PrimaryPackage>(consumers));
-  
-  pipeline_.reset(new comm::Pipeline<PrimaryPackage>(*prod_, multi_consumer_.get(), "PrimaryClient Pipeline", notifier_));
+
+  pipeline_.reset(
+      new comm::Pipeline<PrimaryPackage>(*prod_, multi_consumer_.get(), "PrimaryClient Pipeline", notifier_));
 }
 
 PrimaryClient::~PrimaryClient()
@@ -31,16 +33,17 @@ PrimaryClient::~PrimaryClient()
 
 void PrimaryClient::start()
 {
-  URCL_LOG_INFO("Starting primary client pipeline");
+  URCL_LOG_INFO("Starting primary client pipeline on %s", stream_.getHost().c_str());
+  pipeline_->init();
   pipeline_->run();
 }
 
-void PrimaryClient::addPrimaryConsumer(std::shared_ptr<AbstractPrimaryConsumer> primary_consumer)
+void PrimaryClient::addPrimaryConsumer(std::shared_ptr<comm::IConsumer<PrimaryPackage>> primary_consumer)
 {
   multi_consumer_->addConsumer(primary_consumer);
 }
 
-void PrimaryClient::removePrimaryConsumer(std::shared_ptr<AbstractPrimaryConsumer> primary_consumer)
+void PrimaryClient::removePrimaryConsumer(std::shared_ptr<comm::IConsumer<PrimaryPackage>> primary_consumer)
 {
   multi_consumer_->removeConsumer(primary_consumer);
 }

@@ -20,7 +20,7 @@ class PrimaryClient
 {
 public:
   PrimaryClient() = delete;
-  PrimaryClient(comm::URStream<PrimaryPackage>& stream);
+  PrimaryClient(const std::string& robot_ip, comm::INotifier& notifier);
   ~PrimaryClient();
 
   /*!
@@ -28,20 +28,19 @@ public:
    *
    * \param primary_consumer Primary consumer that should be added to the list
    */
-  void addPrimaryConsumer (std::shared_ptr<AbstractPrimaryConsumer> primary_consumer);
+  void addPrimaryConsumer(std::shared_ptr<comm::IConsumer<PrimaryPackage>> primary_consumer);
 
   /*!
    * \brief Remove a primary consumer from the list of consumers
    *
    * \param primary_consumer Primary consumer that should be removed from the list
    */
-  void removePrimaryConsumer(std::shared_ptr<AbstractPrimaryConsumer> primary_consumer);
+  void removePrimaryConsumer(std::shared_ptr<comm::IConsumer<PrimaryPackage>> primary_consumer);
   void start();
 
   std::deque<ErrorCode> getErrorCodes();
 
 private:
-
   // The function is called whenever an error code message is received
   void errorMessageCallback(ErrorCode& code);
 
@@ -51,7 +50,7 @@ private:
 
   comm::INotifier notifier_;
 
-  comm::URStream<PrimaryPackage>& stream_;
+  comm::URStream<PrimaryPackage> stream_;
   std::unique_ptr<comm::URProducer<PrimaryPackage>> prod_;
   std::unique_ptr<comm::Pipeline<PrimaryPackage>> pipeline_;
 
