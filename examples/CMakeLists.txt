@@ -47,3 +47,7 @@ target_link_libraries(script_sender_example ur_client_library::urcl)
 add_executable(trajectory_point_interface_example
 trajectory_point_interface.cpp)
 target_link_libraries(trajectory_point_interface_example ur_client_library::urcl)
+
+add_executable(primary_client_example
+primary_client.cpp)
+target_link_libraries(primary_client_example ur_client_library::urcl)
