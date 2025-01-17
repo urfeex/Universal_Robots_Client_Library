@@ -586,27 +586,20 @@ std::string UrDriver::readScriptFile(const std::string& filename)
 
 bool UrDriver::checkCalibration(const std::string& checksum)
 {
-  if (primary_stream_ == nullptr)
+  if (primary_client_ == nullptr)
   {
     throw std::runtime_error("checkCalibration() called without a primary interface connection being established.");
   }
-  primary_interface::PrimaryParser parser;
-  comm::URProducer<primary_interface::PrimaryPackage> prod(*primary_stream_, parser);
-  prod.setupProducer();
 
-  CalibrationChecker consumer(checksum);
+  auto consumer = std::make_shared<urcl::CalibrationChecker>(checksum);
+  primary_client_->addPrimaryConsumer(consumer);
 
-  comm::INotifier notifier;
-
-  comm::Pipeline<primary_interface::PrimaryPackage> pipeline(prod, &consumer, "Pipeline", notifier);
-  pipeline.run();
-
-  while (!consumer.isChecked())
+  while (!consumer->isChecked())
   {
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
   URCL_LOG_DEBUG("Got calibration information from robot.");
-  return consumer.checkSuccessful();
+  return consumer->checkSuccessful();
 }
 
 rtde_interface::RTDEWriter& UrDriver::getRTDEWriter()
