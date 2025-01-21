@@ -96,6 +96,15 @@ html_css_files = [
     'css/ur_theme.css',
 ]
 
+html_context = {
+    "display_github": True,
+    "github_user": "UniversalRobots",
+    "github_repo": "Universal_Robots_Client_Library",
+    "github_version": "master/",
+    "conf_py_path": "doc/",
+    "source_suffix": source_suffix,
+}
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.

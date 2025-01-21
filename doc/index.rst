@@ -1,3 +1,5 @@
+:github_url: https://github.com/UniversalRobots/Universal_Robots_Client_Library/blob/master/doc/index.rst
+
 ur_client_library
 =================
 
