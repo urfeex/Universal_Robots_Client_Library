@@ -21,7 +21,11 @@ add_library(urcl SHARED
     src/primary/robot_state.cpp
     src/primary/robot_message/version_message.cpp
     src/primary/robot_message/error_code_message.cpp
+    src/primary/robot_message/runtime_exception_message.cpp
+    src/primary/robot_message/key_message.cpp
+    src/primary/robot_message/text_message.cpp
     src/primary/robot_state/kinematics_info.cpp
+    src/primary/robot_state/robot_mode_data.cpp
     src/rtde/control_package_pause.cpp
     src/rtde/control_package_setup_inputs.cpp
     src/rtde/control_package_setup_outputs.cpp
