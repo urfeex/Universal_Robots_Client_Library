@@ -62,8 +62,35 @@ void UrDriver::init(const UrDriverConfiguration& config)
   in_headless_mode_ = config.headless_mode;
   socket_connection_attempts_ = config.socket_reconnect_attempts;
   socket_reconnection_timeout_ = config.socket_reconnection_timeout;
-  rtde_initialization_attempts_ = config.rtde_initialization_attempts_;
-  rtde_initialization_timeout_ = config.rtde_initialization_timeout_;
+  rtde_initialization_attempts_ = config.rtde_initialization_attempts;
+  rtde_initialization_timeout_ = config.rtde_initialization_timeout;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  if (config.rtde_initialization_attempts_ != config.default_rtde_initialization_attempts)
+  {
+    URCL_LOG_WARN("DEPRECATION NOTICE: The rtde_initialization_attempts_ parameter has been deprecated. Please use the "
+                  "rtde_initialization_attempts parameter instead. This notice is for application developers using "
+                  "this library. If you are only using an application using this library, you can ignore this "
+                  "message. If rtde_initialization_attempts is set, as well, it will take precedence over "
+                  "rtde_initialization_attempts_.");
+    if (rtde_initialization_attempts_ == config.default_rtde_initialization_attempts)
+    {
+      rtde_initialization_attempts_ = config.rtde_initialization_attempts_;
+    }
+  }
+  if (config.rtde_initialization_timeout_ != config.default_rtde_initialization_timeout)
+  {
+    URCL_LOG_WARN("DEPRECATION NOTICE: The rtde_initialization_timeout_ parameter has been deprecated. Please use the "
+                  "rtde_initialization_timeout parameter instead. This notice is for application developers using "
+                  "this library. If you are only using an application using this library, you can ignore this "
+                  "message. If rtde_initialization_timeout is set, as well, it will take precedence over "
+                  "rtde_initialization_timeout_.");
+    if (rtde_initialization_timeout_ == config.default_rtde_initialization_timeout)
+    {
+      rtde_initialization_timeout_ = config.rtde_initialization_timeout_;
+    }
+  }
+#pragma GCC diagnostic pop
 
   URCL_LOG_DEBUG("Initializing urdriver");
   URCL_LOG_DEBUG("Initializing RTDE client");

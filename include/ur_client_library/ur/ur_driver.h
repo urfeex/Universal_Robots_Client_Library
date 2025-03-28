@@ -125,12 +125,14 @@ struct UrDriverConfiguration
    *
    * If set to 0, the driver will try to initialize the RTDE interface indefinitely.
    */
-  size_t rtde_initialization_attempts_ = 3;
+  const size_t default_rtde_initialization_attempts = 3;
+  size_t rtde_initialization_attempts = default_rtde_initialization_attempts;
 
   /*!
    * \brief Time in between initialization attempts of the RTDE interface.
    */
-  std::chrono::milliseconds rtde_initialization_timeout_ = std::chrono::seconds(5);
+  const std::chrono::milliseconds default_rtde_initialization_timeout = std::chrono::seconds(5);
+  std::chrono::milliseconds rtde_initialization_timeout = default_rtde_initialization_timeout;
 
   bool non_blocking_read = false;
 
@@ -142,6 +144,14 @@ struct UrDriverConfiguration
   double force_mode_damping = 0.025;
   /// @private
   double force_mode_gain_scaling = 0.5;
+  /// @private
+  [[deprecated("rtde_initialization_attempts_ has been deprecated in favor of rtde_initialization_attempts. It will be "
+               "removed in May 2027.")]]
+  size_t rtde_initialization_attempts_ = default_rtde_initialization_attempts;
+  /// @private
+  [[deprecated("rtde_initialization_timeout_ has been deprecated in favor of rtde_initialization_timeout. It will be "
+               "removed in May 2027.")]]
+  std::chrono::milliseconds rtde_initialization_timeout_ = default_rtde_initialization_timeout;
 };
 
 /*!
