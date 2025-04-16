@@ -225,3 +225,17 @@ add_executable(control_mode_tests test_control_mode.cpp)
 target_link_libraries(control_mode_tests PRIVATE ur_client_library::urcl GTest::gtest_main)
 gtest_add_tests(TARGET control_mode_tests
 )
+
+option(BUILD_LONG_TERM_TEST "Build the long term tests that may have more dependencies than the
+library itself." OFF)
+if(BUILD_LONG_TERM_TEST)
+  FetchContent_Declare(backward
+      GIT_REPOSITORY https://github.com/bombela/backward-cpp
+      GIT_TAG master  # or a version tag, such as v1.6
+      SYSTEM          # optional, the Backward include directory will be treated as system directory
+  )
+  FetchContent_MakeAvailable(backward)
+
+  add_executable(long_term_test long_term_test.cpp)
+  target_link_libraries(long_term_test PRIVATE ur_client_library::urcl Backward::Interface)
+endif()
