@@ -20,6 +20,7 @@
 
 #pragma once
 #include <chrono>
+#include <numeric>
 #include "ur_client_library/comm/pipeline.h"
 #include "ur_client_library/comm/parser.h"
 #include "ur_client_library/comm/stream.h"
@@ -47,6 +48,10 @@ private:
 
   bool running_;
 
+  std::vector<std::chrono::duration<double>> parseDurations_;
+  size_t parse_duration_index_ = 0;
+  static const size_t DURATION_SIZE = 32768;
+
 public:
   /*!
    * \brief Creates a URProducer object, registering a stream and a parser.
@@ -56,6 +61,7 @@ public:
    */
   URProducer(URStream<T>& stream, Parser<T>& parser) : stream_(stream), parser_(parser), timeout_(1), running_(false)
   {
+    parseDurations_.resize(DURATION_SIZE);
   }
 
   /*!
@@ -90,6 +96,17 @@ public:
   void stopProducer() override
   {
     running_ = false;
+
+    URCL_LOG_INFO("Parse durations recorded: %zu", parse_duration_index_);
+    auto mean = std::accumulate(parseDurations_.begin(), parseDurations_.end(), std::chrono::duration<double>(0)) /
+                parseDurations_.size();
+    auto max = *std::max_element(parseDurations_.begin(), parseDurations_.end());
+    auto min = *std::min_element(parseDurations_.begin(), parseDurations_.end());
+
+    URCL_LOG_INFO("Parse duration mean: %f ms", mean.count() * 1000);
+    URCL_LOG_INFO("Parse duration max: %f ms", max.count() * 1000);
+    URCL_LOG_INFO("Parse duration min: %f ms", min.count() * 1000);
+    parse_duration_index_ = 0;
   }
 
   void startProducer() override
@@ -119,7 +136,13 @@ public:
         // reset sleep amount
         timeout_ = std::chrono::seconds(1);
         BinParser bp(buf, read);
-        return parser_.parse(bp, products);
+        auto start = std::chrono::high_resolution_clock::now();
+        bool result = parser_.parse(bp, products);
+        auto end = std::chrono::high_resolution_clock::now();
+        parseDurations_[parse_duration_index_ % DURATION_SIZE] =
+            std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        parse_duration_index_++;
+        return result;
       }
 
       if (!running_)
