@@ -427,7 +427,7 @@ private:
 
   void runProducer()
   {
-    URCL_LOG_DEBUG("Starting up producer");
+    URCL_LOG_DEBUG("Starting up producer for <%s>", name_.c_str());
     if (producer_fifo_scheduling_)
     {
       pthread_t this_thread = pthread_self();
