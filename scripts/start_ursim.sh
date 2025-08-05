@@ -138,6 +138,31 @@ strip_robot_model()
   fi
 }
 
+get_arch()
+{
+  # Get the architecture of the current system
+  arch_cmd=""
+  local arch_result=""
+  if command -v uname >/dev/null 2>&1; then
+    arch_result=$(uname -m)
+  elif command -v arch >/dev/null 2>&1; then
+    arch_result=$(arch)
+  else
+    return
+  fi
+
+  case $arch_result in
+    x86_64)
+      echo "amd64"
+      ;;
+    aarch64)
+      echo "arm64"
+      ;;
+    *)
+      ;;
+  esac
+}
+
 # Make sure that all parameters match together. This checks
 # - URSIM_VERSION
 # - ROBOT_MODEL
@@ -252,7 +277,7 @@ get_latest_release_tag()
 # Get the URCAPX download URL for a given version
 #
 # Specify the desired version or "latest" as the first argument
-# 
+#
 # sets URCAPX_VERSION
 # sets URCAPX_DOWNLOAD_URL
 get_download_url_urcapx()
@@ -356,7 +381,7 @@ parse_arguments(){
 # based on that. If no model is specified it should default to a ur5 / ur5e.
 fill_information() {
   # If no robot model is given, set a ur5 based on the series
-  if [ -z "$ROBOT_MODEL" ]; then 
+  if [ -z "$ROBOT_MODEL" ]; then
     echo "No robot model given. Inferring from series"
     if [ -z "$ROBOT_SERIES" ]; then
       get_series_from_version
@@ -400,7 +425,7 @@ test_input_handling() {
 
 main() {
   parse_arguments "$@"
-  
+
 
   fill_information
   get_version_from_latest
@@ -450,10 +475,20 @@ main() {
     ROBOT_MODEL_CONTROLLER_FLAG=""
     verlte "10.7.0" "$URSIM_VERSION" && verlte "$URSIM_VERSION" "10.8.0" && ROBOT_MODEL_CONTROLLER_FLAG="-e ROBOT_TYPE_CONTROLLER=${ROBOT_MODEL}"
 
+    ARCH_FLAG=""
+    if [[ "$(get_arch)" == "arm64" ]]; then
+      ARCH_FLAG="-e HOST_ARCH=arm64"
+    elif [[ "$(get_arch)" == "amd64" ]]; then
+      ARCH_FLAG="-e HOST_ARCH=amd64"
+    else
+      echo "Unsupported architecture: $(get_arch). The HOST_ARCH flag will not bet set. Expect that the simulator doesn't start correctly."
+    fi
+
     docker_cmd="docker run --rm -d \
       --net ursim_net --ip $IP_ADDRESS \
       -v ${PROGRAM_STORAGE}:/ur/bin/backend/applications \
       -e ROBOT_TYPE=${ROBOT_MODEL} \
+      $ARCH_FLAG \
       $ROBOT_MODEL_CONTROLLER_FLAG \
       $PORT_FORWARDING \
       $DOCKER_ARGS \
