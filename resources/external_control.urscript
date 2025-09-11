@@ -777,7 +777,8 @@ thread_script_commands = run script_commands()
 while control_mode > MODE_STOPPED:
   enter_critical
   params_mult = socket_read_binary_integer(REVERSE_INTERFACE_DATA_DIMENSION, "reverse_socket", read_timeout)
-  last_command_time = time()
+  t = time()
+  last_command_time = t.sec + t.nanosec / 1000000000
   last_command = params_mult
   if params_mult[0] > 0:
 
