@@ -85,6 +85,8 @@ global spline_qdd = [0, 0, 0, 0, 0, 0]
 global spline_qd = [0, 0, 0, 0, 0, 0]
 global tool_contact_running = False
 global trajectory_result = 0
+global last_command_time = 0.0
+global last_command = [0]
 
 # Global thread variables
 thread_move = 0
@@ -775,6 +777,8 @@ thread_script_commands = run script_commands()
 while control_mode > MODE_STOPPED:
   enter_critical
   params_mult = socket_read_binary_integer(REVERSE_INTERFACE_DATA_DIMENSION, "reverse_socket", read_timeout)
+  last_command_time = time()
+  last_command = params_mult
   if params_mult[0] > 0:
 
     # Convert read timeout from milliseconds to seconds
