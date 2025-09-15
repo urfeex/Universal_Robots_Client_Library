@@ -28,6 +28,7 @@
 
 #include <ur_client_library/control/reverse_interface.h>
 #include <math.h>
+#include "ur_client_library/comm/socket_t.h"
 
 namespace urcl
 {
@@ -223,7 +224,10 @@ void ReverseInterface::connectionCallback(const socket_t filedescriptor)
   if (client_fd_ == INVALID_SOCKET)
   {
     URCL_LOG_INFO("Robot connected to reverse interface. Ready to receive control commands.");
+    URCL_LOG_INFO("Setting socket option TCP_NODELAY.");
     client_fd_ = filedescriptor;
+    int flag = 1;
+    ur_setsockopt(filedescriptor, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
     handle_program_state_(true);
   }
   else

@@ -28,6 +28,12 @@
 
 #include <ur_client_library/log.h>
 #include <ur_client_library/comm/tcp_server.h>
+#include <ur_client_library/comm/socket_t.h>
+
+#ifndef _WIN32
+#  include <arpa/inet.h>
+#  include <netinet/tcp.h>
+#endif
 
 #include <iostream>
 
@@ -191,6 +197,10 @@ void TCPServer::handleConnect()
     {
       new_connection_callback_(client_fd);
     }
+    int option_value = 5;
+    int option_len = sizeof(option_value);
+    getsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, (void*)&option_value, (socklen_t*)&option_len);
+    URCL_LOG_INFO("Dose FD %d have TCP_NODELAY? %d", client_fd, option_value);
   }
   else
   {
