@@ -30,6 +30,11 @@
 #include <math.h>
 #include "ur_client_library/comm/socket_t.h"
 
+#ifndef _WIN32
+#  include <arpa/inet.h>
+#  include <netinet/tcp.h>
+#endif
+
 namespace urcl
 {
 namespace control
