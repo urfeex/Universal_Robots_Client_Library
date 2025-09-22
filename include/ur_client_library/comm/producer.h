@@ -26,6 +26,7 @@
 #include "ur_client_library/comm/stream.h"
 #include "ur_client_library/comm/package.h"
 #include "ur_client_library/exceptions.h"
+#include "ur_client_library/queue/readerwriterqueue.h"
 
 namespace urcl
 {
@@ -67,9 +68,7 @@ private:
         auto start = std::chrono::high_resolution_clock::now();
         bool result = parser_.parse(bp, product);
         auto end = std::chrono::high_resolution_clock::now();
-        parseDurations_[parse_duration_index_ % DURATION_SIZE] =
-            std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        parse_duration_index_++;
+        durations_queue_.enqueue(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
         return result;
       }
 
@@ -109,6 +108,10 @@ private:
   size_t parse_duration_index_ = 0;
   static const size_t DURATION_SIZE = 32768;
 
+  std::thread writer_thread_;
+
+  moodycamel::ReaderWriterQueue<long long> durations_queue_{ 1024 };
+
 public:
   /*!
    * \brief Creates a URProducer object, registering a stream and a parser.
@@ -118,7 +121,6 @@ public:
    */
   URProducer(URStream<T>& stream, Parser<T>& parser) : stream_(stream), parser_(parser), timeout_(1), running_(false)
   {
-    parseDurations_.resize(DURATION_SIZE);
   }
 
   /*!
@@ -153,22 +155,14 @@ public:
   void stopProducer() override
   {
     running_ = false;
-
-    URCL_LOG_INFO("Parse durations recorded: %zu", parse_duration_index_);
-    auto mean = std::accumulate(parseDurations_.begin(), parseDurations_.end(), std::chrono::duration<double>(0)) /
-                parseDurations_.size();
-    auto max = *std::max_element(parseDurations_.begin(), parseDurations_.end());
-    auto min = *std::min_element(parseDurations_.begin(), parseDurations_.end());
-
-    URCL_LOG_INFO("Parse duration mean: %f ms", mean.count() * 1000);
-    URCL_LOG_INFO("Parse duration max: %f ms", max.count() * 1000);
-    URCL_LOG_INFO("Parse duration min: %f ms", min.count() * 1000);
-    parse_duration_index_ = 0;
+    writer_thread_.join();
   }
 
   void startProducer() override
   {
     running_ = true;
+    writer_thread_ = std::thread(&URProducer::writerThreadFunc, this,
+                                 stream_.getHost() + "_" + std::to_string(stream_.getPort()) + "_parse_durations.csv");
   }
 
   /*!
@@ -208,6 +202,22 @@ public:
   void setReconnectionCallback(std::function<void()> on_reconnect_cb)
   {
     on_reconnect_cb_ = on_reconnect_cb;
+  }
+
+  // Background writer thread
+  void writerThreadFunc(const std::string& filename)
+  {
+    std::ofstream out_file(filename, std::ios::out);
+    while (running_ || durations_queue_.peek() != nullptr)
+    {
+      long long duration;
+      while (durations_queue_.tryDequeue(duration))
+      {
+        out_file << duration << "\n";
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));  // Avoid busy-waiting
+    }
+    out_file.close();
   }
 };
 }  // namespace comm

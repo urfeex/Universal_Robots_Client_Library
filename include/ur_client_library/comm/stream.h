@@ -117,6 +117,11 @@ public:
     return host_;
   }
 
+  int getPort() const
+  {
+    return port_;
+  }
+
 private:
   std::string host_;
   int port_;
