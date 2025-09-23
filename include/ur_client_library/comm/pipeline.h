@@ -389,6 +389,8 @@ public:
     {
       cThread_.join();
     }
+
+    writer_thread_.join();
     notifier_.stopped(name_);
   }
 
@@ -424,6 +426,8 @@ private:
   std::atomic<bool> running_;
   std::thread pThread_, cThread_;
   bool producer_fifo_scheduling_;
+  std::thread writer_thread_;
+  moodycamel::ReaderWriterQueue<long long> durations_queue_{ 1024 };
 
   void runProducer()
   {
@@ -434,7 +438,9 @@ private:
       const int max_thread_priority = sched_get_priority_max(SCHED_FIFO);
       setFiFoScheduling(this_thread, max_thread_priority);
     }
+    writer_thread_ = std::thread(&Pipeline::writerThreadFunc, this, name_ + "_producer_durations.csv");
     std::vector<std::unique_ptr<T>> products;
+    auto start = std::chrono::high_resolution_clock::now();
     while (running_)
     {
       if (!producer_.tryGet(products))
@@ -453,9 +459,28 @@ private:
       }
 
       products.clear();
+      auto end = std::chrono::high_resolution_clock::now();
+      durations_queue_.enqueue(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
+      start = end;
     }
     URCL_LOG_DEBUG("Pipeline producer ended! <%s>", name_.c_str());
     notifier_.stopped(name_);
+  }
+  //
+  // Background writer thread
+  void writerThreadFunc(const std::string& filename)
+  {
+    std::ofstream out_file(filename, std::ios::out);
+    while (running_ || durations_queue_.peek() != nullptr)
+    {
+      long long duration;
+      while (durations_queue_.tryDequeue(duration))
+      {
+        out_file << duration << "\n";
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));  // Avoid busy-waiting
+    }
+    out_file.close();
   }
 
   void runConsumer()
