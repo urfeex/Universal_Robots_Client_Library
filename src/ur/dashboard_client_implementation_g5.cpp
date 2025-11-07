@@ -164,6 +164,7 @@ std::string DashboardClientImplG5::read()
   std::stringstream result;
   char character;
   size_t read_chars = 99;
+  URCL_LOG_INFO("Waiting for answer...");
   while (read_chars > 0)
   {
     if (!TCPSocket::read((uint8_t*)&character, 1, read_chars))
@@ -193,6 +194,7 @@ std::string DashboardClientImplG5::sendAndReceive(const std::string& text)
   std::lock_guard<std::mutex> lock(write_mutex_);
   if (send(command))
   {
+    URCL_LOG_INFO("Sent '%s", command.c_str());
     response = read();
   }
   else
@@ -363,6 +365,7 @@ bool DashboardClientImplG5::waitForReply(const std::string& command, const std::
   while (time_done < timeout)
   {
     // Send the request
+    URCL_LOG_INFO("Sending '%s', expecting '%s'", command.c_str(), expected.c_str());
     response = sendAndReceive(command);
 
     // Check if the response was as expected
