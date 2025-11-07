@@ -26,6 +26,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include <chrono>
 #include <filesystem>
 #include <regex>
 #include <sstream>
@@ -367,6 +368,8 @@ bool DashboardClientImplG5::waitForReply(const std::string& command, const std::
     // Check if the response was as expected
     if (std::regex_match(response, std::regex(expected)))
     {
+      URCL_LOG_INFO("Got response '%s' after %lu milliseconds", response.c_str(),
+                    std::chrono::duration_cast<std::chrono::milliseconds>(time_done).count());
       return true;
     }
 
@@ -426,10 +429,14 @@ DashboardResponse DashboardClientImplG5::commandPowerOff()
 {
   DashboardResponse response;
   response.message = sendRequestString("power off");
+  auto start = std::chrono::steady_clock::now();
   if (waitForReply("robotmode", "Robotmode: POWER_OFF"))
   {
     response.ok = true;
   }
+  URCL_LOG_INFO(
+      "Waited %lu ms until robot actually reported power_off.",
+      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count());
   return response;
 }
 

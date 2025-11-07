@@ -528,6 +528,7 @@ bool RTDEClient::isRobotBooted()
     }
     else
     {
+      URCL_LOG_WARN("Robot isn't fully booted, yet. Did not get timestamp data.");
       return false;
     }
   }
@@ -535,6 +536,8 @@ bool RTDEClient::isRobotBooted()
   // Pause connection again
   if (!sendPause())
     return false;
+
+  URCL_LOG_INFO("Robot is booted, time since controller start: %f seconds", timestamp);
 
   return true;
 }
