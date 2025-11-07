@@ -180,6 +180,7 @@ std::string DashboardClientImplG5::read()
       break;
     }
   }
+  URCL_LOG_INFO("Read '%s'", result.str().c_str());
   return result.str();
 }
 
@@ -194,7 +195,7 @@ std::string DashboardClientImplG5::sendAndReceive(const std::string& text)
   std::lock_guard<std::mutex> lock(write_mutex_);
   if (send(command))
   {
-    URCL_LOG_INFO("Sent '%s", command.c_str());
+    URCL_LOG_INFO("Sent '%s'", command.c_str());
     response = read();
   }
   else
