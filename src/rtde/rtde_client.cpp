@@ -396,6 +396,7 @@ bool RTDEClient::setupOutputs(const uint16_t protocol_version)
       else
       {
         // All variables are accounted for in the RTDE package
+        URCL_LOG_INFO("Finished setting up outputs.");
         return true;
       }
     }
@@ -599,6 +600,8 @@ bool RTDEClient::sendStart()
     return false;
   }
 
+  URCL_LOG_INFO("Sending start request to RTDE server");
+
   std::unique_ptr<RTDEPackage> package;
   unsigned int num_retries = 0;
   while (num_retries < MAX_REQUEST_RETRIES)
@@ -634,6 +637,9 @@ bool RTDEClient::sendPause()
   size_t size;
   size_t written;
   size = ControlPackagePauseRequest::generateSerializedRequest(buffer);
+
+  URCL_LOG_INFO("Sending pause request to RTDE server");
+
   if (!stream_.write(buffer, size, written))
   {
     URCL_LOG_ERROR("Sending RTDE pause command failed!");
