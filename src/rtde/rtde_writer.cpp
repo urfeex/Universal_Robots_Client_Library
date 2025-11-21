@@ -65,7 +65,7 @@ void RTDEWriter::run()
   std::unique_ptr<DataPackage> package;
   while (running_)
   {
-    if (queue_.waitDequeTimed(package, 1000000))
+    if (queue_.wait_dequeue_timed(package, 1000000))
     {
       package->setRecipeID(recipe_id_);
       size = package->serializePackage(buffer);
@@ -103,7 +103,7 @@ bool RTDEWriter::sendSpeedSlider(double speed_slider_fraction)
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -140,7 +140,7 @@ bool RTDEWriter::sendStandardDigitalOutput(uint8_t output_pin, bool value)
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -178,7 +178,7 @@ bool RTDEWriter::sendConfigurableDigitalOutput(uint8_t output_pin, bool value)
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -215,7 +215,7 @@ bool RTDEWriter::sendToolDigitalOutput(uint8_t output_pin, bool value)
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -258,7 +258,7 @@ bool RTDEWriter::sendStandardAnalogOutput(uint8_t output_pin, double value, cons
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -296,7 +296,7 @@ bool RTDEWriter::sendInputBitRegister(uint32_t register_id, bool value)
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -322,7 +322,7 @@ bool RTDEWriter::sendInputIntRegister(uint32_t register_id, int32_t value)
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -348,7 +348,7 @@ bool RTDEWriter::sendInputDoubleRegister(uint32_t register_id, double value)
 
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
@@ -362,7 +362,7 @@ bool RTDEWriter::sendExternalForceTorque(const vector6d_t& external_force_torque
   bool success = package_.setData("external_force_torque", external_force_torque);
   if (success)
   {
-    if (!queue_.tryEnqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
+    if (!queue_.try_enqueue(std::unique_ptr<DataPackage>(new DataPackage(package_))))
     {
       return false;
     }
