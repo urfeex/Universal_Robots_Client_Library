@@ -96,7 +96,10 @@ public:
   void stopProducer() override
   {
     running_ = false;
-    writer_thread_.join();
+    if (writer_thread_.joinable())
+    {
+      writer_thread_.join();
+    }
   }
 
   void startProducer() override
