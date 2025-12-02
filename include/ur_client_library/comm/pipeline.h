@@ -390,7 +390,11 @@ public:
       cThread_.join();
     }
 
-    writer_thread_.join();
+    if (writer_thread_.joinable())
+    {
+      URCL_LOG_INFO("Stopping producer writer thread");
+      writer_thread_.join();
+    }
     notifier_.stopped(name_);
   }
 
