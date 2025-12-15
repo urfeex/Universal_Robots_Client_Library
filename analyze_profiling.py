@@ -75,7 +75,7 @@ def main():
 
 
     # Load the CSV file
-    df = pd.read_csv(args.input_csv, header=None)
+    df = pd.read_csv(args.input_csv, header=0)
 
     analyze_profiling_data(df, args.output_hist_json, args.output_hist_png, 
                            args.output_box_json, args.output_box_png)

@@ -106,7 +106,8 @@ public:
   {
     running_ = true;
     writer_thread_ = std::thread(&URProducer::writerThreadFunc, this,
-                                 stream_.getHost() + "_" + std::to_string(stream_.getPort()) + "_parse_durations.csv");
+                                 stream_.getHost() + "_" + std::to_string(stream_.getPort()) + "_parse_durations.csv",
+                                 "parse_time_microseconds");
   }
 
   /*!
@@ -183,9 +184,10 @@ public:
   }
 
   // Background writer thread
-  void writerThreadFunc(const std::string& filename)
+  void writerThreadFunc(const std::string& filename, const std::string& column_header = "parse_time_microseconds")
   {
     std::ofstream out_file(filename, std::ios::out);
+    out_file << column_header << "\n";
     while (running_ || durations_queue_.peek() != nullptr)
     {
       long long duration;
