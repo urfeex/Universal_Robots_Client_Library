@@ -344,6 +344,57 @@ bool ScriptCommandInterface::setTcpOffset(const vector6d_t& offset)
   return server_.write(client_fd_, buffer, sizeof(buffer), written);
 }
 
+bool ScriptCommandInterface::setPathOffset(const vector6d_t& offset, const uint32_t type)
+{
+  const int message_length = 8;
+  uint8_t buffer[sizeof(int32_t) * MAX_MESSAGE_LENGTH];
+  uint8_t* b_pos = buffer;
+
+  int32_t val = htobe32(toUnderlying(ScriptCommand::SET_PATH_OFFSET));
+  b_pos += append(b_pos, val);
+
+  for (auto const& frame : offset)
+  {
+    val = htobe32(static_cast<int32_t>(round(frame * MULT_JOINTSTATE)));
+    b_pos += append(b_pos, val);
+  }
+  val = htobe32(type);
+  b_pos += append(b_pos, val);
+
+  // writing zeros to allow usage with other script commands
+  for (size_t i = message_length; i < MAX_MESSAGE_LENGTH; i++)
+  {
+    val = htobe32(0);
+    b_pos += append(b_pos, val);
+  }
+  size_t written;
+
+  return server_.write(client_fd_, buffer, sizeof(buffer), written);
+}
+
+bool ScriptCommandInterface::pathOffsetSetEnabled(const bool enabled)
+{
+  const int message_length = 2;
+  uint8_t buffer[sizeof(int32_t) * MAX_MESSAGE_LENGTH];
+  uint8_t* b_pos = buffer;
+
+  int32_t val = htobe32(toUnderlying(ScriptCommand::SET_PATH_OFFSET_ENABLED));
+  b_pos += append(b_pos, val);
+
+  val = htobe32(enabled);
+  b_pos += append(b_pos, val);
+
+  // writing zeros to allow usage with other script commands
+  for (size_t i = message_length; i < MAX_MESSAGE_LENGTH; i++)
+  {
+    val = htobe32(0);
+    b_pos += append(b_pos, val);
+  }
+  size_t written;
+
+  return server_.write(client_fd_, buffer, sizeof(buffer), written);
+}
+
 bool ScriptCommandInterface::clientConnected()
 {
   return client_connected_;

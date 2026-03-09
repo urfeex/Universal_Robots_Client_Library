@@ -176,6 +176,9 @@ public:
    */
   bool setTcpOffset(const vector6d_t& offset);
 
+  bool setPathOffset(const vector6d_t& offset, const uint32_t type = 1);
+  bool pathOffsetSetEnabled(const bool enabled);
+
   /*!
    * \brief Set friction compensation for the torque_command. If true the torque command will compensate for friction,
    * if false it will not.
@@ -248,6 +251,8 @@ private:
     FT_RTDE_INPUT_ENABLE = 8,       ///< Enable FT RTDE input
     SET_GRAVITY = 9,                ///< Set gravity vector
     SET_TCP_OFFSET = 10,            ///< Set TCP offset
+    SET_PATH_OFFSET = 11,           ///< Set path offset
+    SET_PATH_OFFSET_ENABLED = 12,   ///< Enable/disable path offset
   };
 
   /*!

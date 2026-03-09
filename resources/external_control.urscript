@@ -58,6 +58,8 @@ SET_FRICTION_COMPENSATION = 7
 FT_RTDE_INPUT_ENABLE = 8
 SET_GRAVITY = 9
 SET_TCP_OFFSET = 10
+SET_PATH_OFFSET = 11
+SET_PATH_OFFSET_ENABLED = 12
 SCRIPT_COMMAND_DATA_DIMENSION = 28
 
 FREEDRIVE_MODE_START = 1
@@ -92,6 +94,9 @@ global spline_qd = [0, 0, 0, 0, 0, 0]
 global tool_contact_running = False
 global trajectory_result = 0
 global friction_compensation_enabled = True
+global path_offset_enabled = False
+global path_offset = p[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+global path_offset_type
 
 # Global thread variables
 thread_move = 0
@@ -826,6 +831,18 @@ thread script_commands():
       elif command == SET_TCP_OFFSET:
         tcp_offset = p[raw_command[2] / MULT_jointstate, raw_command[3] / MULT_jointstate, raw_command[4] / MULT_jointstate, raw_command[5] / MULT_jointstate, raw_command[6] / MULT_jointstate, raw_command[7] / MULT_jointstate]
         set_tcp(tcp_offset)
+      elif command == SET_PATH_OFFSET:
+        path_offset = p[raw_command[2] / MULT_jointstate, raw_command[3] / MULT_jointstate, raw_command[4] / MULT_jointstate, raw_command[5] / MULT_jointstate, raw_command[6] / MULT_jointstate, raw_command[7] / MULT_jointstate]
+        path_offset_type = raw_command[8]
+        path_offset_set(path_offset, path_offset_type)
+      elif command == SET_PATH_OFFSET_ENABLED:
+        if raw_command[2] == 0:
+          path_offset_enabled = False
+          path_offset_disable()
+        else:
+          path_offset_enabled = True
+          path_offset_enable()
+        end
       end
     end
   end
