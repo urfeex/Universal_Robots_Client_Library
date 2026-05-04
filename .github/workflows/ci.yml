@@ -88,15 +88,6 @@ jobs:
           -R "InstructionExecutorTestStandalone.canceling_without_receiving_answer_returns_false_urcap|ReverseInterfaceTest.disconnected_callbacks_are_called"
         env:
           URSIM_VERSION: ${{matrix.env.URSIM_VERSION}}
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        uses: codecov/codecov-action@v6
-        with:
-          fail_ci_if_error: true
-          files: build/junit.xml
-          report_type: test_results
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: run examples
         run: ./run_examples.sh "192.168.56.101" 1
       - name: install gcovr
@@ -105,15 +96,6 @@ jobs:
       - name: gcovr
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: cd build && gcovr -r .. --xml coverage.xml --gcov-ignore-parse-errors negative_hits.warn_once_per_file --exclude "../3rdparty"
-      - name: Upload coverage reports to Codecov with GitHub Action
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        uses: codecov/codecov-action@v6
-        with:
-          fail_ci_if_error: true
-          files: build/coverage.xml
-          flags: ${{ matrix.env.ROBOT_MODEL }}-${{ matrix.env.URSIM_VERSION }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Generate URSim log files
         if: ${{ always() &&  steps.check_polyscopex.outputs.is_polyscopex  == 'false' }}
         run: |
@@ -172,10 +154,3 @@ jobs:
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
         run: bundle exec bashcov --skip-uncovered bats tests/test_start_ursim.bats
-      - name: Upload coverage reports to Codecov with GitHub Action
-        uses: codecov/codecov-action@v6
-        with:
-          fail_ci_if_error: true
-          flags: start_ursim
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
