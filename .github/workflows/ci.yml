@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - run_flaky
   schedule:
     - cron: '38 2 * * *'
 
@@ -81,7 +81,11 @@ jobs:
         if: ${{ steps.check_polyscopex.outputs.is_polyscopex  == 'true' }}
         run: chrome --no-sandbox --disable-settuid-sandbox --headless=new 192.168.56.101 &
       - name: test
-        run: cd build && ctest --output-on-failure --output-junit junit.xml
+        run: >
+          cd build && ctest
+          --output-on-failure
+          --output-junit junit.xml
+          -R "InstructionExecutorTestStandalone.canceling_without_receiving_answer_returns_false_urcap|ReverseInterfaceTest.disconnected_callbacks_are_called"
         env:
           URSIM_VERSION: ${{matrix.env.URSIM_VERSION}}
       - name: Upload test results to Codecov
