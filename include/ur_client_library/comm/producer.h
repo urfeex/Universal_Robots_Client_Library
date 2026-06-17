@@ -25,6 +25,7 @@
 #include "ur_client_library/comm/stream.h"
 #include "ur_client_library/comm/package.h"
 #include "ur_client_library/exceptions.h"
+#include "ur_client_library/queue/readerwriterqueue.h"
 
 namespace urcl
 {
@@ -47,6 +48,10 @@ private:
 
   bool running_;
 
+  std::thread writer_thread_;
+
+  moodycamel::ReaderWriterQueue<long long> durations_queue_{ 1024 };
+
   template <typename ProductT>
   bool tryGetImpl(ProductT& product)
   {
@@ -63,7 +68,11 @@ private:
         // reset sleep amount
         timeout_ = std::chrono::seconds(1);
         BinParser bp(buf, read);
-        return parser_.parse(bp, product);
+        auto start = std::chrono::high_resolution_clock::now();
+        bool result = parser_.parse(bp, product);
+        auto end = std::chrono::high_resolution_clock::now();
+        durations_queue_.enqueue(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
+        return result;
       }
 
       if (!running_)
@@ -141,11 +150,17 @@ public:
   void stopProducer() override
   {
     running_ = false;
+    if (writer_thread_.joinable())
+    {
+      writer_thread_.join();
+    }
   }
 
   void startProducer() override
   {
     running_ = true;
+    writer_thread_ = std::thread(&URProducer::writerThreadFunc, this,
+                                 stream_.getHost() + "_" + std::to_string(stream_.getPort()) + "_parse_durations.csv");
   }
 
   /*!
@@ -185,6 +200,22 @@ public:
   void setReconnectionCallback(std::function<void()> on_reconnect_cb)
   {
     on_reconnect_cb_ = on_reconnect_cb;
+  }
+
+  // Background writer thread
+  void writerThreadFunc(const std::string& filename)
+  {
+    std::ofstream out_file(filename, std::ios::out);
+    while (running_ || durations_queue_.peek() != nullptr)
+    {
+      long long duration;
+      while (durations_queue_.tryDequeue(duration))
+      {
+        out_file << duration << "\n";
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));  // Avoid busy-waiting
+    }
+    out_file.close();
   }
 };
 }  // namespace comm
