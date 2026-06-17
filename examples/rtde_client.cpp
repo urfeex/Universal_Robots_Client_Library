@@ -27,6 +27,7 @@
 
 #include <ur_client_library/rtde/rtde_client.h>
 
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -42,6 +43,26 @@ const std::string INPUT_RECIPE = "examples/resources/rtde_input_recipe.txt";
 
 // Preallocation of string to avoid allocation in main loop
 const std::string TARGET_SPEED_FRACTION = "target_speed_fraction";
+
+std::thread g_writer_thread;
+moodycamel::ReaderWriterQueue<long long> g_durations_queue{ 1024 };
+bool g_running = false;
+
+void writerThreadFunc(const std::string& filename, const std::string& column_header = "cycle_time_microseconds")
+{
+  std::ofstream out_file(filename, std::ios::out);
+  out_file << column_header << "\n";
+  while (g_running || g_durations_queue.peek() != nullptr)
+  {
+    long long duration;
+    while (g_durations_queue.tryDequeue(duration))
+    {
+      out_file << duration << "\n";
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));  // Avoid busy-waiting
+  }
+  out_file.close();
+}
 
 void printFraction(const double fraction, const std::string& label, const size_t width = 20)
 {
@@ -72,9 +93,11 @@ int main(int argc, char* argv[])
   {
     second_to_run = std::stoi(argv[2]);
   }
+  g_running = true;
+  g_writer_thread = std::thread(&writerThreadFunc, robot_ip + "_cycle_times.csv", "cycle_time_microseconds");
 
   comm::INotifier notifier;
-  const double rtde_frequency = 50;  // Hz
+  const double rtde_frequency = 500;  // Hz
   rtde_interface::RTDEClient my_client(robot_ip, notifier, OUTPUT_RECIPE, INPUT_RECIPE, rtde_frequency);
   my_client.init();
 
@@ -89,11 +112,15 @@ int main(int argc, char* argv[])
   // loop.
   my_client.start(false);  // false -> do not start background read thread.
 
-  auto start_time = std::chrono::steady_clock::now();
-  while (second_to_run <= 0 ||
-         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start_time).count() <
-             second_to_run)
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto cycle_end = std::chrono::high_resolution_clock::now();
+  auto cycle_start = cycle_end;
+  while (
+      second_to_run <= 0 ||
+      std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start_time).count() <
+          second_to_run)
   {
+    cycle_start = std::chrono::high_resolution_clock::now();
     // Wait for a DataPackage. In a real-world application this thread should be scheduled with real-time priority in
     // order to ensure that this is called in time.
     bool success = my_client.getDataPackageBlocking(data_pkg);
@@ -135,12 +162,18 @@ int main(int argc, char* argv[])
       std::cout << "\033[1;31mSending RTDE data failed." << "\033[0m\n" << std::endl;
       return 1;
     }
+
+    cycle_end = std::chrono::high_resolution_clock::now();
+    g_durations_queue.enqueue(std::chrono::duration_cast<std::chrono::microseconds>(cycle_end - cycle_start).count());
   }
 
   // Resetting the speedslider back to 100%
   my_client.getWriter().sendSpeedSlider(1);
 
   URCL_LOG_INFO("Exiting RTDE read/write example.");
+
+  g_running = false;
+  g_writer_thread.join();
 
   return 0;
 }
