@@ -2,6 +2,13 @@
 Changelog for package ur_client_library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Tolerate null values in the PolyScope X program list (`#565 <https://github.com/UniversalRobots/Universal_Robots_Client_Library/issues/565>`_)
+* Fix flaky spline interpolation test (`#556 <https://github.com/UniversalRobots/Universal_Robots_Client_Library/issues/556>`_)
+* Error codes are now also followed by a description (`#564 <https://github.com/UniversalRobots/Universal_Robots_Client_Library/issues/564>`_)
+* Contributors: Felix Exner, Michael Mair, URJala
+
 2.15.0 (2026-09-03)
 -------------------
 * Robot api 10.14 (`#549 <https://github.com/UniversalRobots/Universal_Robots_Client_Library/issues/549>`_)
